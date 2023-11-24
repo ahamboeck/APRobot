@@ -5,7 +5,7 @@
 #include <string.h>     /* for memset() */
 #include <unistd.h>     /* for close() */
 
-#define RCVBUFSIZE 10000000  /* Size of receive buffer */
+#define RCVBUFSIZE 1000  /* Size of receive buffer */
 
 void DieWithError(char *errorMessage);  /* Error handling function */
 
@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     unsigned int echoStringLen;      /* Length of string to echo */
     int bytesRcvd, totalBytesRcvd;   /* Bytes read in single recv() 
                                         and total bytes read */
+    printf("reached");
 
     if ((argc < 3) || (argc > 4))    /* Test for correct number of arguments */
     {
@@ -50,12 +51,6 @@ int main(int argc, char *argv[])
     if (connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
         DieWithError("connect() failed");
 
-    echoStringLen = strlen(defEchoStringLen);          /* Determine input length */
-
-    /* Send the string to the server */
-    if (send(sock, defEchoStringLen ,echoStringLen, 0) != echoStringLen)
-        DieWithError("send() sent a different number of bytes than expected");
-
     /* Receive the same string back from the server */
     totalBytesRcvd = 0;
     printf("Received: ");                /* Setup to print the echoed string */
@@ -82,4 +77,4 @@ int main(int argc, char *argv[])
 
     close(sock);
     exit(0);
-}
+}        
