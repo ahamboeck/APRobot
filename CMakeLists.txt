@@ -12,6 +12,9 @@ include_directories(include)
 
 # Add the executable
 add_executable(testPrint src/testPrint.cpp src/odomScaler.cpp)
+add_executable(thread1 src/thread1.cpp src/thread1.cpp)
+target_link_libraries(thread1 PRIVATE pthread)
+
 
 # If you have other source files in the 'src' directory and want to include them,
 # list them in the add_executable call, like this:
