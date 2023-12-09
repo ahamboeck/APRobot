@@ -1,3 +1,0 @@
-/home/reconerboy/local_git/APRobot/build/CMakeFiles/MyExecutable.dir
-/home/reconerboy/local_git/APRobot/build/CMakeFiles/edit_cache.dir
-/home/reconerboy/local_git/APRobot/build/CMakeFiles/rebuild_cache.dir
