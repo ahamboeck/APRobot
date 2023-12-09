@@ -15,6 +15,7 @@ int main()
     // std::cout << "Linear: " << l << "  Angular: " << a << "\n";
     // send.sendCmdVel(l, a);
     // std::cout << "TEST4";
+    recv.recvOdom();
     recv.recvScan();
 
     return 0;

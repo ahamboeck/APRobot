@@ -15,7 +15,7 @@ protected:
     int sock;
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;
-    const std::string servIP = "192.168.100.51";
+    const std::string servIP = "192.168.100.53";
     // char echoBuffer[RCVBUFSIZE];
     // int bytesRcvd, totalBytesRcvd;
 
