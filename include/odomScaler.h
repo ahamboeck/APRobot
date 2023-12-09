@@ -1,3 +1,4 @@
+//odomScaler.h
 #include <iostream>
 #include <map>
 #include <string>
@@ -7,33 +8,33 @@
 class odomScaler
 { 
 private:
-    struct Position
-    {
-        double x, y, z;
-    };
-
-    struct Orientation
-    {
-        double x, y, z, w;
-    };
-
-    struct Pose
-    {
-        Position position;
-        Orientation orientation;
-    };
-
-    struct Twist
-    {
-        struct Linear
+    struct Odometry
+    {  
+        struct Pose
         {
-            double x, y, z;
-        } linear;
+            struct Position
+            {
+                double x, y, z;
+            }position;
 
-        struct Angular
+            struct Orientation
+            {
+                double x, y, z, w;
+            }orientation;
+        }pose;
+
+        struct Twist
         {
-            double x, y, z;
-        } angular;
+            struct Linear
+            {
+                double x, y, z;
+            } linear;
+
+            struct Angular
+            {
+                double x, y, z;
+            } angular;
+        }twist;
     };
 
 public:
@@ -41,12 +42,8 @@ public:
     odomScaler() {};
     //default destructor
     ~odomScaler() {};
-    
-    struct Odometry
-    {
-        Pose pose;
-        Twist twist;
-    };
-
-    Odometry scale(std::string odom);
+    //msg
+    Odometry odometry;
+    //scaling
+    void scale(std::string odom);
 };

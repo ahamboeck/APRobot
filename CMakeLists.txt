@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include_directories(include)
 
 # Add the executable
-add_executable(MyExecutable src/main.cpp)
+add_executable(testPrint src/testPrint.cpp src/odomScaler.cpp)
 
 # If you have other source files in the 'src' directory and want to include them,
 # list them in the add_executable call, like this:
