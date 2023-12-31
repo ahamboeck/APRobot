@@ -45,5 +45,5 @@ public:
     //msg
     Odometry odometry;
     //scaling
-    void scale(std::string odom);
+    double scale(std::string odom);
 };

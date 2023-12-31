@@ -1,7 +1,7 @@
 //odomScaler.cpp
 #include "odomScaler.h"
 
-void odomScaler::scale(std::string odom)
+double odomScaler::scale(std::string odom)
 {
     std::string odometryData = odom;
 
@@ -72,4 +72,6 @@ void odomScaler::scale(std::string odom)
     std::size_t startAngularZ = angular.find("\"z\":") + 4;
     std::size_t endAngularZ = angular.find("}", startAngularZ);
     this->odometry.twist.angular.z = std::stod(angular.substr(startAngularZ, endAngularZ - startAngularZ));
+
+    return 0;
 }

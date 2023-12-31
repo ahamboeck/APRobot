@@ -11,7 +11,6 @@ int main()
 
     odomScaler Scaler;
     Scaler.scale(odom);
-    
 
     std::cout << Scaler.odometry.pose.position.x << std::endl;
     std::cout << Scaler.odometry.pose.position.y << std::endl;

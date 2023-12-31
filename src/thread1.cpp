@@ -1,3 +1,5 @@
+//thread1.cpp
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
@@ -9,28 +11,60 @@
 #include <recieve.h>
 
 std::mutex mutex1;
-int counter = 0;
+char* sharedMemory;
 
-void *print_message_value(void *ptr);
-void *print_message_value(void *ptr)
+void *share(void *ptr);
+void *share(void *ptr)
 {
     std::lock_guard<std::mutex> lock(mutex1);
-    counter++;
-    std::cout << "Counter Value: " << counter << std::endl;
 
-    char *message = (char *)ptr;
-    std::cout << message << std::endl;
+    sharedMemory = (char *)ptr;
+    std::cout << sharedMemory << std::endl;
 
+    return nullptr;
+}
+
+void *recvOdom();
+void *recvOdom()
+{   
+    std::string recvMsg;
+    char* recvOdom;
+    Recv recv;
+    recvMsg = recv.recvOdom();
+    recvOdom = new char[recvMsg.length()+1]; //std array
+    strcpy(recvOdom, recvMsg.c_str());
+    share((void*)recvOdom);
+
+    //delete[] recvOdom;
+        std::cout << sharedMemory << std::endl;
+    return nullptr;
+}
+
+void *scaleOdom();
+void *scaleOdom()
+{   
+    std::string recvMsg = sharedMemory;
+    std::string scaledMsg;
+    char* scaledOdom;
+
+    odomScaler Scaler;
+    double dRecvMsg = Scaler.scale(recvMsg);
+    scaledMsg = std::to_string(dRecvMsg);
+
+    scaledOdom = new char[scaledMsg.length()+1];
+    strcpy(scaledOdom, scaledMsg.c_str());
+    share((void*)scaledOdom);
+
+    //delete[] scaledOdom;
+    std::cout << sharedMemory << std::endl;
     return nullptr;
 }
 
 int main(void)
 {   
-    const char *odom = "recieved-scaled-caluclated-toString";
-    const char *recvOdom = "recvOdom";
-
-    std::thread thread1(print_message_value, (void *)odom);
-    std::thread thread2(print_message_value, (void *)recvOdom);
+    std::thread thread1(*recvOdom);
+    std::thread thread2(*scaleOdom);
+    //std::thread thread3(*motorcontroller)
 
     thread1.join();
     thread2.join();
