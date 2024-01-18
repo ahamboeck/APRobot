@@ -86,7 +86,7 @@ double odomScaler::scale(std::string odom)
     double kalpha = 0.03;
     double kbeta = -0.0125;
     double goalX = 1;
-    double goalY = 1;
+    double goalY = 0;
     double goalTheta = 0;
 
     // calculate

@@ -80,6 +80,9 @@ void *scaleOdom()
     //delete[] scaledOdom;
     std::cout << sharedVx << std::endl;
     std::cout << sharedOmega << std::endl;
+
+    dataReady = true;    
+    cv.notify_one();
     return nullptr;
 }
 
@@ -88,7 +91,11 @@ void *sendRobot()
 {   
     std::cout << "OUT" << std::endl;
     std::unique_lock<std::mutex> lock(mutex1);
+    
+    std::cout << "OUT 2" << std::endl;
+    
     cv.wait(lock, []{ return dataReady; });
+    
 
     float linear = std::stof(sharedVx);
     float angular = std::stof(sharedOmega);
@@ -98,12 +105,16 @@ void *sendRobot()
     Send sender;
     sender.sendCmdVel(linear, angular);
 
+    dataReady = true;    
+    cv.notify_one();
+
     return nullptr;
 }
 
 int main(void)
 {    
 
+    while(true){
     std::thread thread1(*recvOdom);
     std::thread thread2(*scaleOdom);
     std::thread thread3(*sendRobot);
@@ -112,9 +123,10 @@ int main(void)
     thread2.join();
     thread3.join();
 
-    delete[] sharedMemory; // Cleanup
-    delete[] sharedVx;
-    delete[] sharedOmega;
+    //delete[] sharedMemory; // Cleanup
+    //delete[] sharedVx;
+    //delete[] sharedOmega;
+    }
 
     return 0;
 }
