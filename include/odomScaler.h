@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
+#include <cmath>
 
 class odomScaler
 { 
@@ -46,4 +47,6 @@ public:
     Odometry odometry;
     //scaling
     double scale(std::string odom);
+    double vx;
+    double omega;
 };

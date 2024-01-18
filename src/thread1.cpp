@@ -9,9 +9,16 @@
 #include <string>
 #include <send.h>
 #include <recieve.h>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 std::mutex mutex1;
+std::condition_variable cv;
 char* sharedMemory;
+char* sharedVx;
+char* sharedOmega;
+bool dataReady = false;
 
 void *share(void *ptr);
 void *share(void *ptr)
@@ -19,7 +26,10 @@ void *share(void *ptr)
     std::lock_guard<std::mutex> lock(mutex1);
 
     sharedMemory = (char *)ptr;
-    std::cout << sharedMemory << std::endl;
+    std::cout <<  "shared: " << sharedMemory << std::endl;
+
+    dataReady = true;
+    cv.notify_one();
 
     return nullptr;
 }
@@ -30,44 +40,81 @@ void *recvOdom()
     std::string recvMsg;
     char* recvOdom;
     Recv recv;
+    //test
+    std::cout << "reached" << std::endl;
+    //
     recvMsg = recv.recvOdom();
-    recvOdom = new char[recvMsg.length()+1]; //std array
-    strcpy(recvOdom, recvMsg.c_str());
-    share((void*)recvOdom);
-
+    //test
+    std::cout << "reached1" << std::endl;
+    //
+    {
+        std::lock_guard<std::mutex> lock(mutex1);
+        recvOdom = new char[recvMsg.length()+1]; //std array
+        strcpy(recvOdom, recvMsg.c_str());
+        //share((void*)recvOdom);
+        sharedMemory = recvOdom;
+        dataReady = true;
+    }
     //delete[] recvOdom;
-        std::cout << sharedMemory << std::endl;
+    cv.notify_one();
     return nullptr;
 }
+
 
 void *scaleOdom();
 void *scaleOdom()
 {   
-    std::string recvMsg = sharedMemory;
-    std::string scaledMsg;
-    char* scaledOdom;
+    std::unique_lock<std::mutex> lock(mutex1);
+    cv.wait(lock, []{ return dataReady; });
 
     odomScaler Scaler;
-    double dRecvMsg = Scaler.scale(recvMsg);
-    scaledMsg = std::to_string(dRecvMsg);
+    Scaler.scale(sharedMemory);
 
-    scaledOdom = new char[scaledMsg.length()+1];
-    strcpy(scaledOdom, scaledMsg.c_str());
-    share((void*)scaledOdom);
+    std::string vxString = std::to_string(Scaler.vx);
+    std::string omegaString = std::to_string(Scaler.omega);
+    sharedVx = new char[vxString.length() + 1];
+    sharedOmega = new char[omegaString.length() + 1];
+    strcpy(sharedVx, vxString.c_str());
+    strcpy(sharedOmega, omegaString.c_str());
 
     //delete[] scaledOdom;
-    std::cout << sharedMemory << std::endl;
+    std::cout << sharedVx << std::endl;
+    std::cout << sharedOmega << std::endl;
+    return nullptr;
+}
+
+void *sendRobot();
+void *sendRobot()
+{   
+    std::cout << "OUT" << std::endl;
+    std::unique_lock<std::mutex> lock(mutex1);
+    cv.wait(lock, []{ return dataReady; });
+
+    float linear = std::stof(sharedVx);
+    float angular = std::stof(sharedOmega);
+
+    std::cout << "linear: " << linear << "angular:" << angular << std::endl;
+
+    Send sender;
+    sender.sendCmdVel(linear, angular);
+
     return nullptr;
 }
 
 int main(void)
-{   
+{    
+
     std::thread thread1(*recvOdom);
     std::thread thread2(*scaleOdom);
-    //std::thread thread3(*motorcontroller)
-
+    std::thread thread3(*sendRobot);
+    
     thread1.join();
     thread2.join();
+    thread3.join();
+
+    delete[] sharedMemory; // Cleanup
+    delete[] sharedVx;
+    delete[] sharedOmega;
 
     return 0;
 }

@@ -8,13 +8,13 @@ int main()
     Recv recv;
     float l;
     float a;
-    // std::cout << "Set linear\n";
-    // std::cin >> l;
-    // std::cout << "Set angular\n";
-    // std::cin >> a;
-    // std::cout << "Linear: " << l << "  Angular: " << a << "\n";
-    // send.sendCmdVel(l, a);
-    // std::cout << "TEST4";
+    std::cout << "Set linear\n";
+    std::cin >> l;
+    std::cout << "Set angular\n";
+    std::cin >> a;
+    std::cout << "Linear: " << l << "  Angular: " << a << "\n";
+    send.sendCmdVel(l, a);
+    std::cout << "TEST4";
     recv.recvOdom();
     recv.recvScan();
 

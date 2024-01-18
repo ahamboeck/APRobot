@@ -73,5 +73,38 @@ double odomScaler::scale(std::string odom)
     std::size_t endAngularZ = angular.find("}", startAngularZ);
     this->odometry.twist.angular.z = std::stod(angular.substr(startAngularZ, endAngularZ - startAngularZ));
 
+    //calculate
+
+    double delta_x;
+    double delta_y;
+    double delta_th;
+
+    double rho;
+    double alpha;
+    double beta; 
+    double krho = 0.025;
+    double kalpha = 0.03;
+    double kbeta = -0.0125;
+    double goalX = 1;
+    double goalY = 1;
+    double goalTheta = 0;
+
+    // calculate
+    delta_x = goalX - this->odometry.pose.position.x;
+    delta_y = goalY - this->odometry.pose.position.y;
+    delta_th = goalTheta - this->odometry.pose.orientation.z;
+    rho = sqrt(pow(delta_x, 2) + pow(delta_y, 2));
+    alpha = -this->odometry.pose.orientation.z + atan2(delta_y, delta_x);
+    beta = -delta_th - alpha;
+
+    if(rho < 0.3){
+        this->vx = 0;
+        this->omega = 0;
+    }
+    else{
+        this->vx = krho * rho;
+        this->omega = kalpha * alpha + kbeta * beta;
+    }
+
     return 0;
 }
