@@ -9,12 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
 include_directories(include)
+include_directories(lib)
 
 # Add the executable
-add_executable(testPrint src/testPrint.cpp src/odomScaler.cpp)
+#add_executable(testPrint src/testPrint.cpp src/odomScaler.cpp)
 add_executable(thread1 src/thread1.cpp src/odomScaler.cpp)
-add_executable(tcpHandler src/tcpHandler.cpp src/tcpHandler.cpp)
 target_link_libraries(thread1 PRIVATE pthread)
+add_executable(tcpHandler src/tcpHandler.cpp src/tcpHandler.cpp)
 
 # If you have other source files in the 'src' directory and want to include them,
 # list them in the add_executable call, like this:

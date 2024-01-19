@@ -14,16 +14,16 @@ protected:
     int sock;
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;
-    const std::string servIP = "192.168.100.51";
+    const std::string servIP = "192.168.100.50";
 
 public:
     TCPHandler()
     {
-        std::cout << "Handler constructed\n";
+        //std::cout << "Handler constructed\n";
     }
     ~TCPHandler()
     {
-        std::cout << "Handler destructed\n";
+        //std::cout << "Handler destructed\n";
     }
     void DieWithError(const std::string &errorMessage)
     {

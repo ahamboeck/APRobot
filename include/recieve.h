@@ -13,7 +13,7 @@ public:
     ~Recv(){};
     std::string recvOdom()
     {
-        std::cout << "recvOdom is called!\n";
+        //std::cout << "recvOdom is called!\n";
         echoServPort = 9998;
         if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
             DieWithError("socket() failed");
@@ -56,7 +56,7 @@ public:
             if (!startFound && receivedData.find(startMarker) != std::string::npos)
             {
                 startFound = true;
-                std::cout << "Start found \n";
+                //std::cout << "Start found \n";
             }
 
             // If start marker found, look for end marker
@@ -71,14 +71,14 @@ public:
         std::size_t endPos = receivedData.find(endMarker);
         std::string message = receivedData.substr(startPos, endPos - startPos);
 
-        std::cout << "Received odom: " << message << std::endl;
+        //std::cout << "Received odom: " << message << std::endl;
         close(sock);
         return message;
     }
     
     std::string recvScan()
 {
-    std::cout << "recvScan is called!\n";
+    //std::cout << "recvScan is called!\n";
     echoServPort = 9997;
     if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
         DieWithError("socket() failed");
@@ -121,7 +121,7 @@ public:
             if (!startFound && receivedData.find(startMarker) != std::string::npos)
             {
                 startFound = true;
-                std::cout << "Start found \n";
+                //std::cout << "Start found \n";
             }
 
             // If start marker found, look for end marker
@@ -136,7 +136,7 @@ public:
         std::size_t endPos = receivedData.find(endMarker);
         std::string message = receivedData.substr(startPos, endPos - startPos);
 
-        std::cout << "Received scan: " << message << std::endl;
+        //std::cout << "Received scan: " << message << std::endl;
         close(sock);
         return message;
 }

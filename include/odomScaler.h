@@ -3,8 +3,10 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <boost/algorithm/string.hpp>
+#include "../lib/boost/algorithm/string.hpp"
 #include <cmath>
+#include "../lib/eigen3/Eigen/Core"
+#include "../lib/eigen3/Eigen/Geometry"
 
 class odomScaler
 { 

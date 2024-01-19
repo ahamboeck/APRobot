@@ -19,19 +19,22 @@ char* sharedMemory;
 char* sharedVx;
 char* sharedOmega;
 bool dataReady = false;
+std::atomic<bool> stop(false);
 
-void *share(void *ptr);
-void *share(void *ptr)
-{
-    std::lock_guard<std::mutex> lock(mutex1);
-
-    sharedMemory = (char *)ptr;
-    std::cout <<  "shared: " << sharedMemory << std::endl;
-
-    dataReady = true;
-    cv.notify_one();
-
-    return nullptr;
+void checkForExit() {
+    int input;
+    while(true) {
+        std::cin >> input;
+        if (input == 0) {
+            Send sender;
+            sender.sendCmdVel(0,0);
+            delete[] sharedMemory;
+            delete[] sharedVx;
+            delete[] sharedOmega;
+            stop.store(true);
+            break;
+        }
+    }
 }
 
 void *recvOdom();
@@ -40,13 +43,8 @@ void *recvOdom()
     std::string recvMsg;
     char* recvOdom;
     Recv recv;
-    //test
-    std::cout << "reached" << std::endl;
-    //
+
     recvMsg = recv.recvOdom();
-    //test
-    std::cout << "reached1" << std::endl;
-    //
     {
         std::lock_guard<std::mutex> lock(mutex1);
         recvOdom = new char[recvMsg.length()+1]; //std array
@@ -59,7 +57,6 @@ void *recvOdom()
     cv.notify_one();
     return nullptr;
 }
-
 
 void *scaleOdom();
 void *scaleOdom()
@@ -78,8 +75,8 @@ void *scaleOdom()
     strcpy(sharedOmega, omegaString.c_str());
 
     //delete[] scaledOdom;
-    std::cout << sharedVx << std::endl;
-    std::cout << sharedOmega << std::endl;
+    //std::cout << sharedVx << std::endl;
+    //std::cout << sharedOmega << std::endl;
 
     dataReady = true;    
     cv.notify_one();
@@ -89,10 +86,7 @@ void *scaleOdom()
 void *sendRobot();
 void *sendRobot()
 {   
-    std::cout << "OUT" << std::endl;
     std::unique_lock<std::mutex> lock(mutex1);
-    
-    std::cout << "OUT 2" << std::endl;
     
     cv.wait(lock, []{ return dataReady; });
     
@@ -100,7 +94,7 @@ void *sendRobot()
     float linear = std::stof(sharedVx);
     float angular = std::stof(sharedOmega);
 
-    std::cout << "linear: " << linear << "angular:" << angular << std::endl;
+    //std::cout << "linear: " << linear << "angular:" << angular << std::endl;
 
     Send sender;
     sender.sendCmdVel(linear, angular);
@@ -113,19 +107,20 @@ void *sendRobot()
 
 int main(void)
 {    
+    std::thread exitThread(checkForExit);
 
-    while(true){
-    std::thread thread1(*recvOdom);
-    std::thread thread2(*scaleOdom);
-    std::thread thread3(*sendRobot);
+    while(!stop.load()) {
     
-    thread1.join();
-    thread2.join();
-    thread3.join();
+        std::thread thread1(*recvOdom);
+        std::thread thread2(*scaleOdom);
+        std::thread thread3(*sendRobot);
 
-    //delete[] sharedMemory; // Cleanup
-    //delete[] sharedVx;
-    //delete[] sharedOmega;
+        thread1.join();
+        thread2.join();
+        thread3.join();
+    }
+    if (exitThread.joinable()) {
+    exitThread.join();
     }
 
     return 0;

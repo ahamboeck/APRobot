@@ -8,7 +8,7 @@ public:
     ~Send(){};
     void sendCmdVel(float linear, float angular)
     {
-        std::cout << "sendCmdVel is called!\n";
+        //std::cout << "sendCmdVel is called!\n";
         echoServPort = 9999;
         std::stringstream ss;
         ss << "---START---{\"linear\":" << linear << ", \"angular\":" << angular << "}___END___";
@@ -29,7 +29,7 @@ public:
 
         if (send(sock, echoString.c_str(), echoStringLen, 0) != static_cast<ssize_t>(echoStringLen))
             DieWithError("send() sent a different number of bytes than expected");
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         close(sock);
     }
