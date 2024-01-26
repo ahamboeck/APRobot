@@ -74,10 +74,10 @@ double odomScaler::scale(std::string odom)
     this->odometry.twist.angular.z = std::stod(angular.substr(startAngularZ, endAngularZ - startAngularZ));
 
     //calculate
-    Eigen::Quaternion<double> q(this->odometry.pose.orientation.x, 
+    Eigen::Quaternion<double> q(this->odometry.pose.orientation.w, 
+                     this->odometry.pose.orientation.x, 
                      this->odometry.pose.orientation.y, 
-                     this->odometry.pose.orientation.z, 
-                     this->odometry.pose.orientation.w);
+                     this->odometry.pose.orientation.z);
 
     Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2);  // (roll, pitch, yaw)
     std::cout << euler[2] << std::endl;
@@ -90,8 +90,8 @@ double odomScaler::scale(std::string odom)
     double alpha;
     double beta; 
     double krho = 0.2;
-    double kalpha = 0.1;
-    double kbeta = -0.02;
+    double kalpha = 0.3;
+    double kbeta = -0.05;
     double goalX = 0;
     double goalY = 0;
     double goalTheta = 0;
@@ -99,12 +99,12 @@ double odomScaler::scale(std::string odom)
     // calculate
     delta_x = goalX - this->odometry.pose.position.x;
     delta_y = goalY - this->odometry.pose.position.y;
-    delta_th = goalTheta - abs(euler[2]);
+    delta_th = goalTheta - euler[2];
     rho = sqrt(pow(delta_x, 2) + pow(delta_y, 2));
-    alpha = -this->odometry.pose.orientation.z + atan2(delta_y, delta_x);
+    alpha = -euler[2] + atan2(delta_y, delta_x);
     beta = -delta_th - alpha;
 
-    if(rho < 0.1 &&  abs(delta_th) < 0.2){
+    if(rho < 0.2 &&  abs(delta_th) < 0.2){
         this->vx = 0;
         this->omega = 0;
     }
