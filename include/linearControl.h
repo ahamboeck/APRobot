@@ -3,6 +3,7 @@
 #include <iostream>
 #include <odomScaler.h>
 #include <cmath>
+#include <tuple>
 #include "../lib/eigen3/Eigen/Core"
 #include "../lib/eigen3/Eigen/Geometry"
 
@@ -27,4 +28,6 @@ public:
     double goalX;
     double goalY;
     double goalTheta;
+
+    std::tuple<double, double> calculateLinearControl(odomScaler::Odometry o);
 };

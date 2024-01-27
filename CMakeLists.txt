@@ -15,7 +15,6 @@ include_directories(lib)
 #add_executable(testPrint src/testPrint.cpp src/odomScaler.cpp)
 add_executable(main src/main.cpp src/odomScaler.cpp)
 target_link_libraries(main PRIVATE pthread)
-add_executable(linearControl src/linearControl.cpp src/linearControl.cpp)
 
 # If you have other source files in the 'src' directory and want to include them,
 # list them in the add_executable call, like this:
