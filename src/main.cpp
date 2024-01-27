@@ -1,4 +1,4 @@
-//thread1.cpp
+//main.cpp
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +12,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+
+
+std::shared_ptr<odomScaler::Odometry> sharedOdometry;
 
 std::mutex mutex1;
 std::condition_variable cv;
@@ -67,12 +70,14 @@ void *scaleOdom()
     odomScaler Scaler;
     Scaler.scale(sharedMemory);
 
-    std::string vxString = std::to_string(Scaler.vx);
-    std::string omegaString = std::to_string(Scaler.omega);
-    sharedVx = new char[vxString.length() + 1];
-    sharedOmega = new char[omegaString.length() + 1];
-    strcpy(sharedVx, vxString.c_str());
-    strcpy(sharedOmega, omegaString.c_str());
+    sharedOdometry = std::make_shared<odomScaler::Odometry>(Scaler.odometry);
+
+    //std::string vxString = std::to_string(Scaler.vx);
+    //std::string omegaString = std::to_string(Scaler.omega);
+    //sharedVx = new char[vxString.length() + 1];
+    //sharedOmega = new char[omegaString.length() + 1];
+    //strcpy(sharedVx, vxString.c_str());
+    //strcpy(sharedOmega, omegaString.c_str());
 
     //delete[] scaledOdom;
     //std::cout << sharedVx << std::endl;
@@ -81,6 +86,13 @@ void *scaleOdom()
     dataReady = true;    
     cv.notify_one();
     return nullptr;
+}
+
+void *calculateVel();
+void *calculateVel(){
+
+    
+
 }
 
 void *sendRobot();
