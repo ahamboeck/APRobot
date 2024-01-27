@@ -1,4 +1,3 @@
-//main.cpp
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
@@ -16,22 +15,30 @@ std::mutex mutex1;
 std::condition_variable cv;
 
 std::shared_ptr<odomScaler::Odometry> sharedOdometry;
-char* sharedMemory;
-double* sharedVx;
-double* sharedOmega;
+char *sharedMemory;
+double *sharedVx;
+double *sharedOmega;
 bool dataReady = false;
 std::atomic<bool> stop(false);
 
-void checkForExit() {
+void checkForExit()
+{
     int input;
-    while(true) {
+    while (true)
+    {
         std::cin >> input;
-        if (input == 0) {
+        if (input == 0)
+        {
             Send sender;
-            sender.sendCmdVel(0,0);
+            sender.sendCmdVel(0, 0);
             delete[] sharedMemory;
             delete[] sharedVx;
             delete[] sharedOmega;
+
+            sharedMemory = nullptr;
+            sharedVx = nullptr;
+            sharedOmega = nullptr;
+            sharedOdometry = nullptr;
             stop.store(true);
             break;
         }
@@ -40,57 +47,47 @@ void checkForExit() {
 
 void *recvOdom();
 void *recvOdom()
-{   
+{
     std::string recvMsg;
-    char* recvOdom;
+    char *recvOdom;
     Recv recv;
 
     recvMsg = recv.recvOdom();
     {
         std::lock_guard<std::mutex> lock(mutex1);
-        recvOdom = new char[recvMsg.length()+1]; //std array
+        recvOdom = new char[recvMsg.length() + 1];
         strcpy(recvOdom, recvMsg.c_str());
-        //share((void*)recvOdom);
         sharedMemory = recvOdom;
         dataReady = true;
     }
-    //delete[] recvOdom;
     cv.notify_one();
     return nullptr;
 }
 
 void *scaleOdom();
 void *scaleOdom()
-{   
+{
+    // std::cout << "Run scaleOdom thread \n";
     std::unique_lock<std::mutex> lock(mutex1);
-    cv.wait(lock, []{ return dataReady; });
+    cv.wait(lock, []
+            { return dataReady; });
 
     odomScaler Scaler;
     Scaler.scale(sharedMemory);
 
     sharedOdometry = std::make_shared<odomScaler::Odometry>(Scaler.odometry);
 
-    //std::string vxString = std::to_string(Scaler.vx);
-    //std::string omegaString = std::to_string(Scaler.omega);
-    //sharedVx = new char[vxString.length() + 1];
-    //sharedOmega = new char[omegaString.length() + 1];
-    //strcpy(sharedVx, vxString.c_str());
-    //strcpy(sharedOmega, omegaString.c_str());
-
-    //delete[] scaledOdom;
-    //std::cout << sharedVx << std::endl;
-    //std::cout << sharedOmega << std::endl;
-
-    dataReady = true;    
+    dataReady = true;
     cv.notify_one();
     return nullptr;
 }
 
 void *calculateVel();
-void *calculateVel(){
-
+void *calculateVel()
+{
     std::unique_lock<std::mutex> lock(mutex1);
-    cv.wait(lock, []{ return dataReady; });
+    cv.wait(lock, []
+            { return dataReady; });
 
     odomScaler::Odometry o = *sharedOdometry;
 
@@ -98,54 +95,55 @@ void *calculateVel(){
 
     std::tuple<double, double> vxOmega = controller.calculateLinearControl(o);
 
-    sharedVx    = new double(std::get<0>(vxOmega));
-    sharedOmega = new double(std::get<1>(vxOmega));  
+    sharedVx = new double(std::get<0>(vxOmega));
+    sharedOmega = new double(std::get<1>(vxOmega));
 
-    dataReady = true;    
+    dataReady = true;
     cv.notify_one();
     return nullptr;
 }
 
 void *sendRobot();
 void *sendRobot()
-{   
+{
     std::unique_lock<std::mutex> lock(mutex1);
-    
-    cv.wait(lock, []{ return dataReady; });
-    
 
-    float linear = *sharedVx;
-    float angular = *sharedOmega;
+    cv.wait(lock, []
+            { return dataReady; });
+    if (sharedVx != nullptr && sharedOdometry != nullptr)
+    {
+        double linear = *sharedVx;
+        double angular = *sharedOmega;
 
-    //std::cout << "linear: " << linear << "angular:" << angular << std::endl;
+        Send sender;
+        sender.sendCmdVel(linear, angular);
 
-    Send sender;
-    sender.sendCmdVel(linear, angular);
-
-    dataReady = true;    
-    cv.notify_one();
-
+        dataReady = true;
+        cv.notify_one();
+    }
     return nullptr;
 }
 
 int main(void)
-{    
+{
     std::thread exitThread(checkForExit);
 
-    while(!stop.load()) {
-    
+    while (!stop.load())
+    {
+
         std::thread thread1(*recvOdom);
         std::thread thread2(*scaleOdom);
-        std::thread thread3(*sendRobot);
-        std::thread thread4(*calculateVel);
+        std::thread thread3(*calculateVel);
+        std::thread thread4(*sendRobot);
 
         thread1.join();
         thread2.join();
         thread3.join();
         thread4.join();
     }
-    if (exitThread.joinable()) {
-    exitThread.join();
+    if (exitThread.joinable())
+    {
+        exitThread.join();
     }
 
     return 0;

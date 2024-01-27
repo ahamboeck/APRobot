@@ -30,4 +30,5 @@ public:
     double goalTheta;
 
     std::tuple<double, double> calculateLinearControl(odomScaler::Odometry o);
+    double wrapAngle(double angle);
 };
