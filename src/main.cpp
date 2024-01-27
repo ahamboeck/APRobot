@@ -10,6 +10,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <localization.h>
+
+
 
 std::mutex mutex1;
 std::condition_variable cv;
@@ -124,13 +127,17 @@ void *sendRobot()
     return nullptr;
 }
 
+localization locator;
+
 int main(void)
 {
     std::thread exitThread(checkForExit);
 
     while (!stop.load())
     {
-
+        locator.center();
+        locator.pyPlot();
+        
         std::thread thread1(*recvOdom);
         std::thread thread2(*scaleOdom);
         std::thread thread3(*calculateVel);
