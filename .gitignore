@@ -1,2 +1,6 @@
 /build
 .vscode
+laser_scan_plot.png
+laser_scan_plot_z_90.png
+scanData_50cm_50cm_z_90_degree_turn.png
+test.py
