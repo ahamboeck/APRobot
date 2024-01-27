@@ -1,31 +1,44 @@
 #include "linearControl.h"
+#include <tuple>
+
+std::tuple<double, double> calculateLinearControl(odomScaler::Odometry o){
+    double v = 0;
+    double omega = 0;
+    linearControl controller;
+
+    controller.odometry.odometry = o;
+    controller.krho = 3;
+    controller.kalpha = 8;
+    controller.kbeta = -1.5;
 
     //calculate
-    Eigen::Quaternion<double> q(this->odometry.pose.orientation.w, 
-                     this->odometry.pose.orientation.x, 
-                     this->odometry.pose.orientation.y, 
-                     this->odometry.pose.orientation.z);
+    Eigen::Quaternion<double> q(controller.odometry.odometry.pose.orientation.w, 
+                     controller.odometry.odometry.pose.orientation.x, 
+                     controller.odometry.odometry.pose.orientation.y, 
+                     controller.odometry.odometry.pose.orientation.z);
 
     Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2);  // (roll, pitch, yaw)
-    std::cout << "Euler: " << euler[2] << std::endl;
+
+    // // calculate
+    controller.delta_x = controller.goalX - controller.odometry.odometry.pose.position.x;
+    controller.delta_y = controller.goalY - controller.odometry.odometry.pose.position.y;
+    controller.delta_th = controller.goalTheta - euler[2];
+    controller.rho = sqrt(pow(controller.delta_x, 2) + pow(controller.delta_y, 2));
+    controller.alpha = fmod((-euler[2] + atan2(controller.delta_y, controller.delta_x)), M_PI_2);
+    controller.beta = fmod(-controller.delta_th - controller.alpha, M_PI);
 
 
 
-    // calculate
-    delta_x = goalX - this->odometry.pose.position.x;
-    delta_y = goalY - this->odometry.pose.position.y;
-    delta_th = goalTheta - euler[2];
-    rho = sqrt(pow(delta_x, 2) + pow(delta_y, 2));
-    alpha = (-euler[2] + atan2(delta_y, delta_x)) ;
-    beta = -delta_th - alpha;
-
-
-
-    if(rho < 0.2 &&  abs(delta_th) < 0.2){
-        this->vx = 0;
-        this->omega = 0;
+    if(controller.rho < 0.2 &&  abs(controller.delta_th) < 0.2)
+    {
+        v = 0;
+        omega = 0;
     }
-    else{
-        this->vx = krho * rho;
-        this->omega = kalpha * alpha + kbeta * beta;
+    else
+    {
+        v = controller.krho * controller.rho;
+        omega = controller.kalpha * controller.alpha + controller.kbeta * controller.beta;
     }
+
+    return std::make_tuple(v, omega);
+}

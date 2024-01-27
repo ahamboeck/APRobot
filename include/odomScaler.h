@@ -11,6 +11,8 @@
 class odomScaler
 { 
 private:
+
+public:
     struct Odometry
     {  
         struct Pose
@@ -39,8 +41,7 @@ private:
             } angular;
         }twist;
     };
-
-public:
+    
     //default constructor
     odomScaler() {};
     //default destructor

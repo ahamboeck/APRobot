@@ -1,9 +1,18 @@
+#pragma once
+
 #include <iostream>
-#include <eigen3>
+#include <odomScaler.h>
+#include <cmath>
+#include "../lib/eigen3/Eigen/Core"
+#include "../lib/eigen3/Eigen/Geometry"
 
 class linearControl
 {
-private:
+public:
+    linearControl(){};
+    ~linearControl(){};
+
+    odomScaler odometry;
 
     double delta_x;
     double delta_y;
@@ -12,21 +21,10 @@ private:
     double rho;
     double alpha;
     double beta; 
-    double krho = 0.2;
-    double kalpha = 0.3;
-    double kbeta = -0.05;
-    double goalX = 2;
-    double goalY = 0;
-    double goalTheta = 1;
-public:
-    linearControl();
-    ~linearControl();
+    double krho;
+    double kalpha;
+    double kbeta;
+    double goalX;
+    double goalY;
+    double goalTheta;
 };
-
-linearControl::linearControl()
-{
-}
-
-linearControl::~linearControl()
-{
-}
