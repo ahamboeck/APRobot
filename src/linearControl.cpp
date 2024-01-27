@@ -1,6 +1,6 @@
 #include "linearControl.h"
 
-std::tuple<double, double> calculateLinearControl(odomScaler::Odometry o){
+std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odometry o){
     double v = 0;
     double omega = 0;
     linearControl controller;
