@@ -3,7 +3,7 @@
 
 double odomScaler::scale(std::string odom)
 {
-    std::string odometryData = odom;
+    //std::string odometryData = odom;  DAS BRAUCHT KEINER 
 
     // pose.pose.position
     std::size_t startPos = odom.find("position");

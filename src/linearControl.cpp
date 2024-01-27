@@ -1,5 +1,4 @@
 #include "linearControl.h"
-#include <tuple>
 
 std::tuple<double, double> calculateLinearControl(odomScaler::Odometry o){
     double v = 0;
