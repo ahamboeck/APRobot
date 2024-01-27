@@ -49,7 +49,5 @@ public:
     //msg
     Odometry odometry;
     //scaling
-    double scale(std::string odom);
-    double vx;
-    double omega;
+    void scale(std::string odom);
 };

@@ -1,7 +1,7 @@
 //odomScaler.cpp
 #include "odomScaler.h"
 
-double odomScaler::scale(std::string odom)
+void odomScaler::scale(std::string odom)
 {
     //std::string odometryData = odom;  DAS BRAUCHT KEINER 
 
