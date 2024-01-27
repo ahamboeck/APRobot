@@ -13,7 +13,7 @@ include_directories(lib)
 
 # Add the executable
 #add_executable(testPrint src/testPrint.cpp src/odomScaler.cpp)
-add_executable(main src/main.cpp src/odomScaler.cpp)
+add_executable(main src/main.cpp src/odomScaler.cpp src/linearControl.cpp)
 target_link_libraries(main PRIVATE pthread)
 
 # If you have other source files in the 'src' directory and want to include them,

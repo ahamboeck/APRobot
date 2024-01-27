@@ -14,7 +14,7 @@ protected:
     int sock;
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;
-    const std::string servIP = "192.168.100.50";
+    const std::string servIP = "192.168.100.51";
 
 public:
     TCPHandler()

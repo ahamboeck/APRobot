@@ -1,4 +1,6 @@
 //odomScaler.h
+#pragma once
+
 #include <iostream>
 #include <map>
 #include <string>

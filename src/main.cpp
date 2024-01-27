@@ -1,11 +1,10 @@
 //main.cpp
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
 #include <iostream>
 #include <mutex>
-#include <odomScaler.h>
+#include <linearControl.h>
 #include <string>
 #include <send.h>
 #include <recieve.h>
@@ -13,14 +12,13 @@
 #include <condition_variable>
 #include <atomic>
 
-
-std::shared_ptr<odomScaler::Odometry> sharedOdometry;
-
 std::mutex mutex1;
 std::condition_variable cv;
+
+std::shared_ptr<odomScaler::Odometry> sharedOdometry;
 char* sharedMemory;
-char* sharedVx;
-char* sharedOmega;
+double* sharedVx;
+double* sharedOmega;
 bool dataReady = false;
 std::atomic<bool> stop(false);
 
@@ -91,8 +89,21 @@ void *scaleOdom()
 void *calculateVel();
 void *calculateVel(){
 
-    
+    std::unique_lock<std::mutex> lock(mutex1);
+    cv.wait(lock, []{ return dataReady; });
 
+    odomScaler::Odometry o = *sharedOdometry;
+
+    linearControl controller;
+
+    std::tuple<double, double> vxOmega = controller.calculateLinearControl(o);
+
+    sharedVx    = new double(std::get<0>(vxOmega));
+    sharedOmega = new double(std::get<1>(vxOmega));  
+
+    dataReady = true;    
+    cv.notify_one();
+    return nullptr;
 }
 
 void *sendRobot();
@@ -103,8 +114,8 @@ void *sendRobot()
     cv.wait(lock, []{ return dataReady; });
     
 
-    float linear = std::stof(sharedVx);
-    float angular = std::stof(sharedOmega);
+    float linear = *sharedVx;
+    float angular = *sharedOmega;
 
     //std::cout << "linear: " << linear << "angular:" << angular << std::endl;
 
@@ -126,10 +137,12 @@ int main(void)
         std::thread thread1(*recvOdom);
         std::thread thread2(*scaleOdom);
         std::thread thread3(*sendRobot);
+        std::thread thread4(*calculateVel);
 
         thread1.join();
         thread2.join();
         thread3.join();
+        thread4.join();
     }
     if (exitThread.joinable()) {
     exitThread.join();
