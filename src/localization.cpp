@@ -1,4 +1,5 @@
-#include "localization.h"
+#pragma once
+#include <localization.h>
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
@@ -422,7 +423,7 @@ void localization::center()
         std::tie(x, y, angle) = coord;
         std::cout << "(" << x << ", " << y << ", " << angle << ")" << std::endl;
     };
-}
+} 
 
 void localization::pyPlot()
 {
