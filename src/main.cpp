@@ -96,11 +96,10 @@ void *calculateVel()
 
     linearControl controller;
 
-    std::tuple<double, double> vxOmega = controller.calculateLinearControl(o);
+    std::tuple<double, double> vxOmegaReached = controller.calculateLinearControl(o);
 
-    sharedVx = new double(std::get<0>(vxOmega));
-    sharedOmega = new double(std::get<1>(vxOmega));
-
+    sharedVx =      new double(std::get<0>(vxOmegaReached));
+    sharedOmega =   new double(std::get<1>(vxOmegaReached));
     dataReady = true;
     cv.notify_one();
     return nullptr;
@@ -137,12 +136,18 @@ int main(void)
         std::thread thread2(*scaleOdom);
         std::thread thread3(*calculateVel);
         std::thread thread4(*sendRobot);
+    {       
+            std::thread thread1(*recvOdom);
+            std::thread thread2(*scaleOdom);
+            std::thread thread3(*calculateVel);
+            std::thread thread4(*sendRobot);
 
         thread1.join();
         thread2.join();
         thread3.join();
         thread4.join();
     }
+
     if (exitThread.joinable())
     {
         exitThread.join();
