@@ -2,22 +2,9 @@
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
-double dist_a = 0.7;
-double tol_a = 0.1;
-
-
 localization::localization(const std::vector<float> &polarCoordinates) : laserScanVec(polarCoordinates) {}
 
-localization localizer(laserScanVec);
-
-
-
-auto cartesianCoordinates = localizer.convertToCartesian();
-// auto coordAt20Degrees = converter.findCoordinatesByAngle(20);
-auto upperWall = localizer.filterWall(cartesianCoordinates, dist_a, -tol_a);
-auto lowerWall = localizer.filterWall(cartesianCoordinates, -dist_a, tol_a);
-
-std::vector<std::tuple<float, float, int>> localization::convertToCartesian()
+std::vector<std::tuple<float, float, int>> localization::convertToCartesian(std::vector<float> laserScanVec)
 {
     cartesianCoordinates.clear();
     for (int i = 0; i < laserScanVec.size(); ++i)
@@ -60,9 +47,9 @@ void localization::center()
         std::tie(x, y, angle) = coord;
         std::cout << "(" << x << ", " << y << ", " << angle << ")" << std::endl;
     };
-} 
+}
 
-void localization::pyPlot()
+void localization::pyPlot(std::vector<std::tuple<float, float, int>> cartesianCoordinates)
 {
     std::vector<float> xValues;
     std::vector<float> yValues;
@@ -81,6 +68,11 @@ void localization::pyPlot()
     plt::title("XY Coordinates");
     plt::xlabel("X-axis");
     plt::ylabel("Y-axis");
+
+    // Save plot to a file
+    plt::save("plot.png");
+
+    // Display plot (optional, comment this out if you don't want the plot to show)
     plt::show();
 }
 
