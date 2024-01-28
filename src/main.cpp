@@ -131,21 +131,16 @@ int main(void)
     std::thread exitThread(checkForExit);
 
     while (!stop.load())
-    {
-        std::thread thread1(*recvOdom);
-        std::thread thread2(*scaleOdom);
-        std::thread thread3(*calculateVel);
-        std::thread thread4(*sendRobot);
     {       
             std::thread thread1(*recvOdom);
             std::thread thread2(*scaleOdom);
             std::thread thread3(*calculateVel);
             std::thread thread4(*sendRobot);
 
-        thread1.join();
-        thread2.join();
-        thread3.join();
-        thread4.join();
+            thread1.join();
+            thread2.join();
+            thread3.join();
+            thread4.join();
     }
 
     if (exitThread.joinable())
