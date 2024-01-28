@@ -17,15 +17,18 @@ double c = 0.5;
 double d;
 double piRad = M_PI/180;
 
-std::array<std::tuple<double, double, double>, 8> goals = { 
-
-    std::make_tuple(1, 0, 90*piRad),
-    std::make_tuple(1, 0.25, 0*piRad),
-    std::make_tuple(1.5, 0.25, -90*piRad),
-    std::make_tuple(1.5, -0.25, 180*piRad),
-    std::make_tuple(1, -0.25, 90*piRad),
-    std::make_tuple(1, 0, 180*piRad),
-    std::make_tuple(0, 0, 0*piRad),
+std::array<std::tuple<double, double, double>, 11> goals = {
+std::make_tuple(0.3, 0.0, 0.0 * piRad),
+std::make_tuple(0.6, 0.0, 90.0 * piRad),
+std::make_tuple(0.72, 0.28, 45.0 * piRad),
+std::make_tuple(1.0, 0.4, 0.0 * piRad),
+std::make_tuple(1.28, 0.28, -45.0 * piRad),
+std::make_tuple(1.4, 0.0, -90.0 * piRad),
+std::make_tuple(1.28, -0.28, -135.0 * piRad),
+std::make_tuple(1.0, -0.4, -180.0 * piRad),
+std::make_tuple(0.72, -0.28, 135.0 * piRad),
+std::make_tuple(0.6, 0, 180 * piRad),
+std::make_tuple(0, 0, 0 * piRad),
 };
  
 std::mutex mutex1;

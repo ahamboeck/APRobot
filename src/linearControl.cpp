@@ -19,9 +19,9 @@ std::tuple<double, double, bool> linearControl::calculateLinearControl(odomScale
     double omega = 0;
 
     this->odometry.odometry = o;
-    this->krho = 0.3; 
-    this->kalpha = 0.8; 
-    this->kbeta = -0.15;  
+    this->krho = 0.3*2.5; 
+    this->kalpha = 0.8*2.5; 
+    this->kbeta = -0.15*2.5;  
 
     // calculate
     Eigen::Quaternion<double> q(this->odometry.odometry.pose.orientation.w,
@@ -40,7 +40,7 @@ std::tuple<double, double, bool> linearControl::calculateLinearControl(odomScale
     this->alpha = wrapAngle(atan2(this->delta_y, this->delta_x) - euler[2]);
     this->beta = wrapAngle(this->delta_th - alpha);
 
-    if (this->rho < 0.1 && abs(this->delta_th) < 0.3)
+    if (this->rho < 0.3 && abs(this->delta_th) < 0.3)
     {
         this->goalReached = true;
         v = 0;
