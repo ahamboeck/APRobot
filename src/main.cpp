@@ -127,17 +127,12 @@ void *sendRobot()
     return nullptr;
 }
 
-localization locator;
-
 int main(void)
 {
     std::thread exitThread(checkForExit);
 
     while (!stop.load())
     {
-        locator.center();
-        locator.pyPlot();
-        
         std::thread thread1(*recvOdom);
         std::thread thread2(*scaleOdom);
         std::thread thread3(*calculateVel);
