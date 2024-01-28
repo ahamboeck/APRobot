@@ -27,7 +27,7 @@ std::atomic<bool> stop(false);
 void checkForExit()
 {
     int input;
-    while (true)
+    while (true) 
     {
         std::cin >> input;
         if (input == 0)
