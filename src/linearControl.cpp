@@ -9,48 +9,70 @@ double linearControl::wrapAngle(double angle)
     return angle;
 }
 
+
 std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odometry o)
 {
+
     double v = 0;
     double omega = 0;
-    linearControl controller;
 
-    controller.odometry.odometry = o;
-    controller.krho = 0.3;
-    controller.kalpha = 0.8;
-    controller.kbeta = -0.15;
-    controller.goalX = 1;
-    controller.goalY = 1;
-    controller.goalTheta = M_PI;
+    this->odometry.odometry = o;
+    this->krho = 0.3;
+    this->kalpha = 0.8;
+    this->kbeta = -0.15;
+
+    //set goal
+    // this->goalX =      std::get<0>(this->goals[this->goalIndex]);
+    // this->goalY =      std::get<1>(this->goals[this->goalIndex]);
+    // this->goalTheta =  std::get<2>(this->goals[this->goalIndex]);
+    std::cout << "TopIndex: " << this->goalIndex << std::endl;
 
     // calculate
-    Eigen::Quaternion<double> q(controller.odometry.odometry.pose.orientation.w,
-                                controller.odometry.odometry.pose.orientation.x,
-                                controller.odometry.odometry.pose.orientation.y,
-                                controller.odometry.odometry.pose.orientation.z);
+    Eigen::Quaternion<double> q(this->odometry.odometry.pose.orientation.w,
+                                this->odometry.odometry.pose.orientation.x,
+                                this->odometry.odometry.pose.orientation.y,
+                                this->odometry.odometry.pose.orientation.z);
 
     Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2); // (roll, pitch, yaw)
 
-    // // calculate
+    // calculate
+    this->delta_x = this->goalX - this->odometry.odometry.pose.position.x;
+    this->delta_y = this->goalY - this->odometry.odometry.pose.position.y;
+    this->delta_th = wrapAngle(this->goalTheta - euler[2]);
 
-    controller.delta_x = controller.goalX - controller.odometry.odometry.pose.position.x;
-    controller.delta_y = controller.goalY - controller.odometry.odometry.pose.position.y;
-    controller.delta_th = wrapAngle(controller.goalTheta - euler[2]);
+    this->rho = sqrt(pow(this->delta_x, 2) + pow(this->delta_y, 2));
+    this->alpha = wrapAngle(atan2(this->delta_y, this->delta_x) - euler[2]);
+    this->beta = wrapAngle(this->delta_th - alpha);
 
-    controller.rho = sqrt(pow(controller.delta_x, 2) + pow(controller.delta_y, 2));
-    controller.alpha = wrapAngle(atan2(controller.delta_y, controller.delta_x) - euler[2]);
-    controller.beta = wrapAngle(controller.delta_th - alpha);
-
-    if (controller.rho < 0.2 && abs(controller.delta_th) < 0.2)
+    if (this->rho < 0.2 && abs(this->delta_th) < 0.2)
     {
-        std::cout << "Goal Reached!!!\n";
+        if (!this->goalReached) {
+            this->goalIndex++;
+            this->goalReached = true;
+        }
+
+        std::cout << "goalX: " << this->goalX << " goalY: " << this->goalY << "   goalTTheta: " << this->goalTheta << std::endl;
+
+        std::cout << "deltaX: " << this->delta_x << "  deltaY: " << this->delta_y << "    deltaTh: " << this->delta_th << std::endl;
+
+        std::cout << "posX: " << this->odometry.odometry.pose.position.x << "  posY: " << this->odometry.odometry.pose.position.y << 
+        "   posYaw: " << euler[2] << std::endl;   
+
+        std::cout << "ReachIndex: " << this->goalIndex << std::endl;    
+
+
         v = 0;
         omega = 0;
+
+        this->goalX =      std::get<0>(this->goals[this->goalIndex]);
+        this->goalY =      std::get<1>(this->goals[this->goalIndex]);
+        this->goalTheta =  std::get<2>(this->goals[this->goalIndex]);
     }
     else
-    {
-        v = controller.krho * controller.rho;
-        omega = controller.kalpha * controller.alpha + controller.kbeta * controller.beta;
+    {   
+        this->goalReached = false;
+        v = this->krho * this->rho;
+        omega = this->kalpha * this->alpha + this->kbeta * this->beta;
     }
 
     return std::make_tuple(v, omega);
