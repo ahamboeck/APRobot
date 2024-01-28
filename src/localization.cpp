@@ -1,4 +1,3 @@
-#pragma once
 #include <localization.h>
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
@@ -364,23 +363,22 @@ std::vector<float> laserScanVec = {
     1.0570000410079956,
     1.0529999732971191,
     1.0260000228881836};
-int dist_a = 1;
-int tol_a = 0.5;
+double dist_a = 0.7;
+double tol_a = 0.1;
 
-pol2Car::pol2Car(const std::vector<float> &polarCoordinates) : laserScanVec(polarCoordinates) {}
+
 localization::localization(const std::vector<float> &polarCoordinates) : laserScanVec(polarCoordinates) {}
 
-pol2Car converter(laserScanVec);
 localization localizer(laserScanVec);
 
 
 
-auto cartesianCoordinates = converter.convertToCartesian();
+auto cartesianCoordinates = localizer.convertToCartesian();
 // auto coordAt20Degrees = converter.findCoordinatesByAngle(20);
 auto upperWall = localizer.filterWall(cartesianCoordinates, dist_a, -tol_a);
 auto lowerWall = localizer.filterWall(cartesianCoordinates, -dist_a, tol_a);
 
-std::vector<std::tuple<float, float, int>> pol2Car::convertToCartesian()
+std::vector<std::tuple<float, float, int>> localization::convertToCartesian()
 {
     cartesianCoordinates.clear();
     for (int i = 0; i < laserScanVec.size(); ++i)
@@ -393,7 +391,7 @@ std::vector<std::tuple<float, float, int>> pol2Car::convertToCartesian()
     return cartesianCoordinates;
 }
 
-std::vector<std::tuple<float, float, int>> localization::filterWall(std::vector<std::tuple<float, float, int>> scanData, int boundary, double tolerance)
+std::vector<std::tuple<float, float, int>> localization::filterWall(std::vector<std::tuple<float, float, int>> scanData, double boundary, double tolerance)
 {
     // this function filters the upper or lower walls
     std::vector<std::tuple<float, float, int>> Wall;
