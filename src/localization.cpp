@@ -38,17 +38,6 @@ std::vector<std::tuple<float, float, int>> localization::filterWall(std::vector<
     return Wall;
 }
 
-void localization::center()
-{
-    for (const auto &coord : cartesianCoordinates)
-    {
-        float x, y;
-        int angle;
-        std::tie(x, y, angle) = coord;
-        std::cout << "(" << x << ", " << y << ", " << angle << ")" << std::endl;
-    };
-}
-
 void localization::pyPlot(std::vector<std::tuple<float, float, int>> cartesianCoordinates)
 {
     std::vector<float> xValues;
