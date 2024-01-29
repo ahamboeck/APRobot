@@ -15,23 +15,9 @@
 double b = 1;
 double c = 0.5;
 double d;
-double piRad =  M_PI/180;
+double piRad = M_PI/180;
 
 std::array<std::tuple<double, double, double>, 8> goals = { 
-    //std::make_tuple(1, 0, -M_1_PI/4),
-    //std::make_tuple(1.5, -0.5, M_1_PI/4),
-    //std::make_tuple(2, 0, 3*M_1_PI/4),
-    //std::make_tuple(1.5, 0.5, -3*M_1_PI/4),
-    //std::make_tuple(1, 0, -M_1_PI),
-    //std::make_tuple(0, 0, -M_PI),
-    //std::make_tuple(b, 0, 60*piRad),
-    //std::make_tuple(b+c/2, c/2, -60*piRad),
-    //std::make_tuple(b+1.5*c, c/2, -60*piRad),
-    //std::make_tuple(b+2*c, 0, -60*piRad),
-    //std::make_tuple(b+1.5*c, -c/2, -60*piRad),
-    //std::make_tuple(b+c/2, -c/2, -60*piRad), 
-    //std::make_tuple(b, 0, 60*piRad),
-    //std::make_tuple(0, 0, 180*piRad),
 
     std::make_tuple(1, 0, 90*piRad),
     std::make_tuple(1, 0.25, 0*piRad),
