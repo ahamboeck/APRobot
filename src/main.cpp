@@ -12,13 +12,34 @@
 #include <atomic>
 #include "localization.h"
 
-std::array<std::tuple<double, double, double>, 6> goals = { 
-    std::make_tuple(1, 0, -M_1_PI/4),
-    std::make_tuple(1.5, -0.5, M_1_PI/4),
-    std::make_tuple(2, 0, 3*M_1_PI/4),
-    std::make_tuple(1.5, 0.5, -3*M_1_PI/4),
-    std::make_tuple(1, 0, -M_1_PI),
-    std::make_tuple(0, 0, -M_PI),
+double b = 1;
+double c = 0.5;
+double d;
+double piRad =  M_PI/180;
+
+std::array<std::tuple<double, double, double>, 8> goals = { 
+    //std::make_tuple(1, 0, -M_1_PI/4),
+    //std::make_tuple(1.5, -0.5, M_1_PI/4),
+    //std::make_tuple(2, 0, 3*M_1_PI/4),
+    //std::make_tuple(1.5, 0.5, -3*M_1_PI/4),
+    //std::make_tuple(1, 0, -M_1_PI),
+    //std::make_tuple(0, 0, -M_PI),
+    //std::make_tuple(b, 0, 60*piRad),
+    //std::make_tuple(b+c/2, c/2, -60*piRad),
+    //std::make_tuple(b+1.5*c, c/2, -60*piRad),
+    //std::make_tuple(b+2*c, 0, -60*piRad),
+    //std::make_tuple(b+1.5*c, -c/2, -60*piRad),
+    //std::make_tuple(b+c/2, -c/2, -60*piRad), 
+    //std::make_tuple(b, 0, 60*piRad),
+    //std::make_tuple(0, 0, 180*piRad),
+
+    std::make_tuple(1, 0, 90*piRad),
+    std::make_tuple(1, 0.25, 0*piRad),
+    std::make_tuple(1.5, 0.25, -90*piRad),
+    std::make_tuple(1.5, -0.25, 180*piRad),
+    std::make_tuple(1, -0.25, 90*piRad),
+    std::make_tuple(1, 0, 180*piRad),
+    std::make_tuple(0, 0, 0*piRad),
 };
  
 std::mutex mutex1;
@@ -28,9 +49,8 @@ std::shared_ptr<odomScaler::Odometry> sharedOdometry;
 char *sharedMemory;
 double *sharedVx;
 double *sharedOmega;
-int *sharedIndex = 0;
 bool *sharedReached;
-int goalIndex = 0;
+int  goalIndex = 0;
 bool dataReady = false;
 std::atomic<bool> stop(false);
 
@@ -47,13 +67,14 @@ void checkForExit()
             delete[] sharedMemory;
             delete[] sharedVx;
             delete[] sharedOmega;
-            delete[] sharedIndex;
+            delete[] sharedReached;
+
 
             sharedMemory = nullptr;
             sharedVx = nullptr;
             sharedOmega = nullptr;
             sharedOdometry = nullptr;
-            sharedIndex = nullptr;
+            sharedReached = nullptr;
             stop.store(true);
             break;
         }
@@ -104,26 +125,29 @@ void *calculateVel()
             { return dataReady; });
 
         if(goalIndex < goals.size()){
-        
-            odomScaler::Odometry o = *sharedOdometry;
             
-            linearControl controller;
+            if(sharedOdometry != nullptr){
 
-            double goalX =      std::get<0>(goals[goalIndex]);
-            double goalY =      std::get<1>(goals[goalIndex]);
-            double goalTheta =  std::get<2>(goals[goalIndex]);
+                odomScaler::Odometry o = *sharedOdometry;
 
-            std::tuple<double, double, bool> vxOmegaReached = controller.calculateLinearControl(o, goalX, goalY, goalTheta);
-            
-            sharedVx =      new double(std::get<0>(vxOmegaReached));
-            sharedOmega =   new double(std::get<1>(vxOmegaReached));
-            sharedReached = new bool(std::get<2>(vxOmegaReached));
+                linearControl controller;
 
-            bool goalReached = *sharedReached;
+                double goalX =      std::get<0>(goals[goalIndex]);
+                double goalY =      std::get<1>(goals[goalIndex]);
+                double goalTheta =  std::get<2>(goals[goalIndex]);
 
-            if(goalReached){
-                goalIndex ++;
-                goalReached = false;
+                std::tuple<double, double, bool> vxOmegaReached = controller.calculateLinearControl(o, goalX, goalY, goalTheta);
+                
+                sharedVx =      new double(std::get<0>(vxOmegaReached));
+                sharedOmega =   new double(std::get<1>(vxOmegaReached));
+                sharedReached = new bool(std::get<2>(vxOmegaReached));
+
+                bool goalReached = *sharedReached;
+
+                if(goalReached){
+                    goalIndex ++;
+                    goalReached = false;
+                };
             };
         };
         
@@ -148,10 +172,11 @@ void *sendRobot()
 
         Send sender;
         sender.sendCmdVel(linear, angular);
+    };
 
-        dataReady = true;
-        cv.notify_one();
-    }
+    dataReady = true;
+    cv.notify_one();
+
     return nullptr;
 }
 
