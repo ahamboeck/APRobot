@@ -3,16 +3,23 @@
 #include <thread>
 #include <iostream>
 #include <mutex>
-#include <linearControl.h>
+#include "linearControl.h"
 #include <string>
 #include <send.h>
 #include <recieve.h>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-#include <localization.h>
+#include "localization.h"
 
-
+std::array<std::tuple<double, double, double>, 6> goals = { 
+    std::make_tuple(1, 0, -M_1_PI/4),
+    std::make_tuple(1.5, -0.5, M_1_PI/4),
+    std::make_tuple(2, 0, 3*M_1_PI/4),
+    std::make_tuple(1.5, 0.5, -3*M_1_PI/4),
+    std::make_tuple(1, 0, -M_1_PI),
+    std::make_tuple(0, 0, -M_PI),
+};
  
 std::mutex mutex1;
 std::condition_variable cv;
@@ -21,6 +28,9 @@ std::shared_ptr<odomScaler::Odometry> sharedOdometry;
 char *sharedMemory;
 double *sharedVx;
 double *sharedOmega;
+int *sharedIndex = 0;
+bool *sharedReached;
+int goalIndex = 0;
 bool dataReady = false;
 std::atomic<bool> stop(false);
 
@@ -37,11 +47,13 @@ void checkForExit()
             delete[] sharedMemory;
             delete[] sharedVx;
             delete[] sharedOmega;
+            delete[] sharedIndex;
 
             sharedMemory = nullptr;
             sharedVx = nullptr;
             sharedOmega = nullptr;
             sharedOdometry = nullptr;
+            sharedIndex = nullptr;
             stop.store(true);
             break;
         }
@@ -70,7 +82,6 @@ void *recvOdom()
 void *scaleOdom();
 void *scaleOdom()
 {
-    // std::cout << "Run scaleOdom thread \n";
     std::unique_lock<std::mutex> lock(mutex1);
     cv.wait(lock, []
             { return dataReady; });
@@ -92,16 +103,33 @@ void *calculateVel()
     cv.wait(lock, []
             { return dataReady; });
 
-    odomScaler::Odometry o = *sharedOdometry;
+        if(goalIndex < goals.size()){
+        
+            odomScaler::Odometry o = *sharedOdometry;
+            
+            linearControl controller;
 
-    linearControl controller;
+            double goalX =      std::get<0>(goals[goalIndex]);
+            double goalY =      std::get<1>(goals[goalIndex]);
+            double goalTheta =  std::get<2>(goals[goalIndex]);
 
-    std::tuple<double, double> vxOmegaReached = controller.calculateLinearControl(o);
+            std::tuple<double, double, bool> vxOmegaReached = controller.calculateLinearControl(o, goalX, goalY, goalTheta);
+            
+            sharedVx =      new double(std::get<0>(vxOmegaReached));
+            sharedOmega =   new double(std::get<1>(vxOmegaReached));
+            sharedReached = new bool(std::get<2>(vxOmegaReached));
 
-    sharedVx =      new double(std::get<0>(vxOmegaReached));
-    sharedOmega =   new double(std::get<1>(vxOmegaReached));
-    dataReady = true;
-    cv.notify_one();
+            bool goalReached = *sharedReached;
+
+            if(goalReached){
+                goalIndex ++;
+                goalReached = false;
+            };
+        };
+        
+        dataReady = true;
+        cv.notify_one();
+
     return nullptr;
 }
 
@@ -112,6 +140,7 @@ void *sendRobot()
 
     cv.wait(lock, []
             { return dataReady; });
+
     if (sharedVx != nullptr && sharedOdometry != nullptr)
     {
         double linear = *sharedVx;

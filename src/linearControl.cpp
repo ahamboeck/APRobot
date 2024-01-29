@@ -9,10 +9,13 @@ double linearControl::wrapAngle(double angle)
     return angle;
 }
 
-
-std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odometry o)
+int linearControl::getIndex()
 {
+    return goalIndex;
+}
 
+std::tuple<double, double, bool> linearControl::calculateLinearControl(odomScaler::Odometry o, double goalX, double goalY, double goalTheta)
+{
     double v = 0;
     double omega = 0;
 
@@ -25,7 +28,7 @@ std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odo
     // this->goalX =      std::get<0>(this->goals[this->goalIndex]);
     // this->goalY =      std::get<1>(this->goals[this->goalIndex]);
     // this->goalTheta =  std::get<2>(this->goals[this->goalIndex]);
-    std::cout << "TopIndex: " << this->goalIndex << std::endl;
+    //std::cout << "TopIndex: " << this->goalIndex << std::endl;
 
     // calculate
     Eigen::Quaternion<double> q(this->odometry.odometry.pose.orientation.w,
@@ -36,9 +39,9 @@ std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odo
     Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2); // (roll, pitch, yaw)
 
     // calculate
-    this->delta_x = this->goalX - this->odometry.odometry.pose.position.x;
-    this->delta_y = this->goalY - this->odometry.odometry.pose.position.y;
-    this->delta_th = wrapAngle(this->goalTheta - euler[2]);
+    this->delta_x = goalX - this->odometry.odometry.pose.position.x;
+    this->delta_y = goalY - this->odometry.odometry.pose.position.y;
+    this->delta_th = wrapAngle(goalTheta - euler[2]);
 
     this->rho = sqrt(pow(this->delta_x, 2) + pow(this->delta_y, 2));
     this->alpha = wrapAngle(atan2(this->delta_y, this->delta_x) - euler[2]);
@@ -46,12 +49,14 @@ std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odo
 
     if (this->rho < 0.2 && abs(this->delta_th) < 0.2)
     {
-        if (!this->goalReached) {
-            this->goalIndex++;
+        //if (!this->goalReached) {
+        //    //this->goalIndex++;
             this->goalReached = true;
-        }
+        //}
 
-        std::cout << "goalX: " << this->goalX << " goalY: " << this->goalY << "   goalTTheta: " << this->goalTheta << std::endl;
+        std::cout << "rho: " << this-> rho << " delta_th: " << this-> delta_th <<std::endl;
+
+        std::cout << "goalX: " << this->goalX << " goalY: " << this->goalY << "   goalTheta: " << this->goalTheta << std::endl;
 
         std::cout << "deltaX: " << this->delta_x << "  deltaY: " << this->delta_y << "    deltaTh: " << this->delta_th << std::endl;
 
@@ -64,9 +69,9 @@ std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odo
         v = 0;
         omega = 0;
 
-        this->goalX =      std::get<0>(this->goals[this->goalIndex]);
-        this->goalY =      std::get<1>(this->goals[this->goalIndex]);
-        this->goalTheta =  std::get<2>(this->goals[this->goalIndex]);
+//        this->goalX =      std::get<0>(this->goals[this->goalIndex]);
+//        this->goalY =      std::get<1>(this->goals[this->goalIndex]);
+//        this->goalTheta =  std::get<2>(this->goals[this->goalIndex]);
     }
     else
     {   
@@ -75,5 +80,5 @@ std::tuple<double, double> linearControl::calculateLinearControl(odomScaler::Odo
         omega = this->kalpha * this->alpha + this->kbeta * this->beta;
     }
 
-    return std::make_tuple(v, omega);
+    return std::make_tuple(v, omega, goalReached);
 }
